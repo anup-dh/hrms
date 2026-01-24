@@ -1,9 +1,11 @@
 name: Sync Fork with Frappe Upstream
 
 on:
-  #schedule:
-  # - cron: '0 2 * * *' # Runs automatically at 2:00 AM every day
-  workflow_dispatch: # Allows you to run it manually from the GitHub UI
+  workflow_dispatch: 
+
+# FIX 1: Explicitly request permission to push code
+permissions:
+  contents: write
 
 jobs:
   sync:
@@ -12,7 +14,9 @@ jobs:
       - name: Checkout target branch
         uses: actions/checkout@v3
         with:
-          ref: version-15
+          ref: version-15 
+          # FIX 2: Download full history so Git can perform the merge
+          fetch-depth: 0 
 
       - name: Configure Git
         run: |
