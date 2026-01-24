@@ -1,0 +1,27 @@
+name: Sync Fork with Frappe Upstream
+
+on:
+  #schedule:
+  # - cron: '0 2 * * *' # Runs automatically at 2:00 AM every day
+  workflow_dispatch: # Allows you to run it manually from the GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v3
+        with:
+          ref: version-15
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Sync with Upstream
+        run: |
+          git remote add upstream https://github.com/frappe/hrms.git
+          git fetch upstream
+          git merge upstream/version-15
+          git push origin version-15
