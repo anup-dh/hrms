@@ -920,7 +920,7 @@ class SalarySlip(TransactionBase):
 		# get taxable_earnings for current period (all days)
 		self.current_taxable_earnings = self.get_taxable_earnings(self.tax_slab.allow_tax_exemption)
 		self.future_structured_taxable_earnings = self.current_taxable_earnings.taxable_earnings * (
-			ceil(self.remaining_sub_periods) - 1
+			round(self.remaining_sub_periods) - 1
 		)
 
 		current_taxable_earnings_before_exemption = (
@@ -928,7 +928,7 @@ class SalarySlip(TransactionBase):
 			+ self.current_taxable_earnings.amount_exempted_from_income_tax
 		)
 		self.future_structured_taxable_earnings_before_exemption = (
-			current_taxable_earnings_before_exemption * (ceil(self.remaining_sub_periods) - 1)
+			current_taxable_earnings_before_exemption * (round(self.remaining_sub_periods) - 1)
 		)
 
 		# get taxable_earnings, addition_earnings for current actual payment days
@@ -1334,8 +1334,14 @@ class SalarySlip(TransactionBase):
 		)
 
 		for additional_salary in additional_salaries:
+			component_data = get_salary_component_data(additional_salary.component)
+			remove_if_zero_valued = frappe.get_cached_value(
+				"Salary Component", additional_salary.component, "remove_if_zero_valued"
+			)
+			if flt(additional_salary.amount) == 0 and remove_if_zero_valued:
+				continue
 			self.update_component_row(
-				get_salary_component_data(additional_salary.component),
+				component_data,
 				additional_salary.amount,
 				component_type,
 				additional_salary,
@@ -1509,7 +1515,7 @@ class SalarySlip(TransactionBase):
 			):
 				component_row.set(attr, component_data.get(attr))
 
-		if additional_salary and amount:
+		if additional_salary:
 			if additional_salary.overwrite:
 				component_row.additional_amount = flt(
 					flt(amount) - flt(component_row.get("default_amount", 0)),
